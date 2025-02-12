@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="./heart.png" /> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Will you?</title>
+  <style>
+    /* Smooth scaling transitions for buttons */
+    .big-button,
+    .small-button {
+      transition: transform 0.3s ease;
+    }
+  </style>
+  <link rel="stylesheet" href="./assets/style-Cu2KKoEu.css">
+</head>
+
+<body>
+  <div class="flex flex-col h-[90%] justify-center items-center">
+    <!-- GIF image element -->
+    <div class="flex justify-center items-center">
+      <img id="gifImage" class="w-[400px]" src="willyou.gif" alt="Will you gif">
+    </div>
+    <!-- Text element with an ID for reference -->
+    <div class="flex justify-center items-center mt-0 text-4xl">
+      <p id="valentineText">Will you be my valentine?</p>
+    </div>
+    <!-- Button container with initial extra horizontal spacing -->
+    <div id="buttonContainer" class="w-full flex text-3xl justify-center items-center space-x-16 mt-6">
+      <a href="yay.html" class=""><button id="yesButton" class="yn px-4 bg-green-400 transform scale-100">Yes</button></a>
+      <button id="noButton" class="yn px-4 bg-red-400 transform scale-100">No</button>
+    </div>
+  </div>
+
+  <!-- DaisyUI Modal -->
+  <div id="popupModal" class="modal">
+    <div class="modal-box">
+      <h2 class="text-3xl">No more 'no's hmph : (</h2>
+      <div class="modal-action">
+        <label for="popupModal" class="btn px-2 text-2xl" id="closeModal">Okay</label>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /******** Button and Modal Control ********/
+    const gifImage = document.getElementById('gifImage'); // Reference to the GIF image
+    const yesButton = document.getElementById('yesButton');
+    const noButton = document.getElementById('noButton');
+    const buttonContainer = document.getElementById('buttonContainer');
+    const popupModal = document.getElementById('popupModal');
+    const closeModalButton = document.getElementById('closeModal');
+
+    let clickCount = 0;
+    let noButtonFixed = false; // Flag to check if "No" button has been removed from the flex layout
+
+    // Function to generate a random position for the "No" button that doesn't overlap forbidden elements.
+    function getRandomPosition() {
+      const margin = 20; // Safe margin from viewport edges
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const buttonWidth = noButton.offsetWidth;
+      const buttonHeight = noButton.offsetHeight;
+
+      // Get forbidden rectangles: GIF image, text, and the "Yes" button.
+      const imageRect = gifImage.getBoundingClientRect();
+      const textRect = document.getElementById('valentineText').getBoundingClientRect();
+      const yesButtonRect = yesButton.getBoundingClientRect();
+
+      let randomLeft, randomTop, attempts = 0;
+      let candidateRect, valid;
+
+      do {
+        randomLeft = margin + Math.floor(Math.random() * (viewportWidth - buttonWidth - 2 * margin + 1));
+        randomTop = margin + Math.floor(Math.random() * (viewportHeight - buttonHeight - 2 * margin + 1));
+        candidateRect = {
+          left: randomLeft,
+          right: randomLeft + buttonWidth,
+          top: randomTop,
+          bottom: randomTop + buttonHeight
+        };
+        valid = true;
+        // Check candidate against each forbidden element.
+        const forbiddenRects = [imageRect, textRect, yesButtonRect];
+        for (const rect of forbiddenRects) {
+          if (
+            candidateRect.left < rect.right &&
+            candidateRect.right > rect.left &&
+            candidateRect.top < rect.bottom &&
+            candidateRect.bottom > rect.top
+          ) {
+            valid = false;
+            break;
+          }
+        }
+        attempts++;
+      } while (!valid && attempts < 100);
+
+      return { left: randomLeft, top: randomTop };
+    }
+
+    noButton.addEventListener('click', function () {
+      // On the first click, convert the "No" button to fixed positioning (removing it from the flex container)
+      // and remove the extra spacing so that the "Yes" button stays centered.
+      if (!noButtonFixed) {
+        noButton.style.position = 'fixed';
+        noButtonFixed = true;
+        buttonContainer.classList.remove('space-x-16');
+      }
+
+      // Scale the buttons (up to 4 clicks)
+      if (clickCount < 4) {
+        clickCount++;
+        yesButton.style.transform = `scale(${1 + 0.2 * clickCount})`;
+        noButton.style.transform = `scale(${1 - 0.05 * clickCount})`;
+      }
+
+      // Set a new random position that doesn't overlap the GIF image, text, or "Yes" button.
+      const pos = getRandomPosition();
+      noButton.style.left = pos.left + 'px';
+      noButton.style.top = pos.top + 'px';
+
+      // After 4 clicks, show the modal and remove the "No" button.
+      if (clickCount === 4) {
+        popupModal.classList.add('modal-open');
+        noButton.remove();
+
+      }
+    });
+
+    // Close the modal when "Okay" is clicked.
+    closeModalButton.addEventListener('click', function () {
+      popupModal.classList.remove('modal-open');
+    });
+  </script>
+</body>
+
+</html>
